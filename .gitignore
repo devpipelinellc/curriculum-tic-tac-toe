@@ -1,2 +1,6 @@
 /screens
-/players/the_underdog.py
+/players/alt_tab.py
+/players/the_tie_fighter
+__pycache__
+/unused_players
+/.vscode

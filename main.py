@@ -1,10 +1,12 @@
 import importlib
 import curses
+from os import X_OK
 from getch import getch
 from logic import *
 from time import sleep
 
 symbols = ['X', 'O']
+ai_speed = .3
 
 board_offset_y = 1
 board_offset_x = 1
@@ -28,14 +30,29 @@ main_board_display = [
    "                              └───┴───┘"
 ]
 
+# many_games_results = [
+#    "┌─────────────────────┬───────┬───────┬───────┐",
+#    "│ Player Name         │ Win   │ Loss  │ Tie   │",
+#    "├─────────────────────┼───────┼───────┼───────┤",
+#    "│ X :                 │       │       │       │",
+#    "├─────────────────────┼───────┼───────┼───────┤",
+#    "│ O :                 │       │       │       │",
+#    "└─────────────────────┴───────┴───────┴───────┘"
+# ]
 many_games_results = [
-   "┌───────────────────┬───────┬───────┬───────┐",
-   "│ Player Name       │ Win X │ Win O │ Total │",
-   "├───────────────────┼───────┼───────┼───────┤",
-   "│                   │       │       │       │",
-   "├───────────────────┼───────┼───────┼───────┤",
-   "│                   │       │       │       │",
-   "└───────────────────┴───────┴───────┴───────┘"
+   "┌───────────────────┐    ┌───────────────────┐",
+   "│                   │ vs │                   │",
+   "├─────────┬─────────┤    ├─────────┬─────────┤",
+   "│    X    │    O    │    │    X    │    O    │",
+   "├─────────┼─────────┤    ├─────────┼─────────┤",
+   "│ W:      │ W:      │    │ W:      │ W:      │",
+   "│ L:      │ L:      │    │ L:      │ L:      │",
+   "│ T:      │ T:      │    │ T:      │ T:      │",
+   "├─────────┴─────────┤    ├─────────┴─────────┤",
+   "│   Wins:           │    │   Wins:           │",
+   "│ Losses:           │    │ Losses:           │",
+   "│   Ties:           │    │   Ties:           │",
+   "└───────────────────┘    └───────────────────┘"
 ]
 
 global_stdscr = None
@@ -191,24 +208,41 @@ def print_many_games_scores(players, wins, wins2):
    global global_stdscr
    player_names = printable_players(players)
 
-   row = board_offset_y + 7
-   col = board_offset_x + 2
+   row = board_offset_y + 3
+   col = board_offset_x
    
-   global_stdscr.addstr(row, col, player_names[0])
-   global_stdscr.addstr(row + 2, col, player_names[1])
+   global_stdscr.addstr(row + 2, col + 2, player_names[0])
+   global_stdscr.addstr(row + 2, col + 27, player_names[1])
 
-   col += 21
-   global_stdscr.addstr(row, col, str(wins[0]))
-   global_stdscr.addstr(row + 2, col, str(wins[1]))
+   col += 5
+   row += 6
+   global_stdscr.addstr(row, col, f'{wins[0]:>4}')
+   global_stdscr.addstr(row+1, col, f'{wins[1]:>4}')
+   global_stdscr.addstr(row+2, col, f'{wins[2]:>4}')
+   col += 10
+   global_stdscr.addstr(row, col, f'{wins2[1]:>4}')
+   global_stdscr.addstr(row+1, col, f'{wins2[0]:>4}')
+   global_stdscr.addstr(row+2, col, f'{wins2[2]:>4}')
+   
+   col += 15
+   global_stdscr.addstr(row, col, f'{wins2[0]:>4}')
+   global_stdscr.addstr(row+1, col, f'{wins2[1]:>4}')
+   global_stdscr.addstr(row+2, col, f'{wins2[2]:>4}')
+   col += 10
+   global_stdscr.addstr(row, col, f'{wins[1]:>4}')
+   global_stdscr.addstr(row+1, col, f'{wins[0]:>4}')
+   global_stdscr.addstr(row+2, col, f'{wins[2]:>4}')
 
-   col += 8
-   global_stdscr.addstr(row, col, str(wins2[1]))
-   global_stdscr.addstr(row + 2, col, str(wins2[0]))
-
-   col += 8
-   global_stdscr.addstr(row, col, str(wins[0] + wins2[1]))
-   global_stdscr.addstr(row + 2, col, str(wins[1] + wins2[0]))
-
+   col = board_offset_x + 10
+   row += 4
+   global_stdscr.addstr(row, col, f'{(wins[0] + wins2[1]):>4}')
+   global_stdscr.addstr(row + 1, col, f'{(wins[1] + wins2[0]):>4}')
+   global_stdscr.addstr(row + 2, col, f'{(wins[2] + wins2[2]):>4}')
+   
+   col += 25
+   global_stdscr.addstr(row, col, f'{(wins[1] + wins2[0]):>4}')
+   global_stdscr.addstr(row + 1, col, f'{(wins[0] + wins2[1]):>4}')
+   global_stdscr.addstr(row + 2, col, f'{(wins[2] + wins2[2]):>4}')
 
 def play_game(players, print_board_during_play=True):
    global global_stdscr
@@ -259,13 +293,14 @@ def play_game(players, print_board_during_play=True):
 
       else:
          if print_board_during_play:
-            sleep(1)
+            sleep(ai_speed)
          # If player is AI, get the move from the AI
          move_index = player_modules[turn].get_move(game_state['board'], symbols[turn])
       
       # Check if move is valid
       if move_index not in valid_moves:
-         print_message(f"ERROR: {players[turn]}, {move_index} is not a valid move!")
+         print_message(f"{str(game_state['board'])} : ERROR: {players[turn]}, {move_index} is not a valid move!")
+         getch(['l'])
          return (turn + 1) % 2
          break
       
@@ -288,7 +323,7 @@ def play_game(players, print_board_during_play=True):
 
 def play_many_games(num_games, players, wins):
    for i in range(num_games):
-      print_message('game: ' + str(i))
+      print_message('game: ' + str(i), 4)
       print_status_bar(i, num_games)
       
       winner = play_game(players, False)
@@ -299,7 +334,7 @@ def play_many_games(num_games, players, wins):
 
 def print_status_bar(val, total_val):
    global global_stdscr
-   row = board_offset_y + 10
+   row = board_offset_y + 16
    col = board_offset_x
    
    global_stdscr.move(row, col)
@@ -313,7 +348,7 @@ def print_status_bar(val, total_val):
       val_box_str = '█' * val_boxes
    remainder_str = ''
    if remainder > 1:
-      remainder = '░' * remainder
+      remainder_str = '░' * remainder
    global_stdscr.addstr(row, col, val_box_str + remainder_str)
    global_stdscr.refresh()
 
@@ -322,7 +357,6 @@ def main(stdscr):
    curses.use_default_colors()
    curses.noecho()
    curses.curs_set(False)
-   curses.use_default_colors()
    for i in range(0, curses.COLORS):
       curses.init_pair(i + 1, i, -1)
    
@@ -359,14 +393,17 @@ def main(stdscr):
          else:
             players.insert(0, ai_player)
          
-         winner = play_game(players)
-         # Print winner
-         if winner == -1:
-            print_message("Cat's Game! No winner.")
-         else:
-            print_message(f"{get_printable_name(players[winner])} as {symbols[winner]}, is the Winner!")
-         print_message("Press <C> to continue...", 2)
-         pause = getch(['c'])
+         pause = 'r'
+         while pause == 'r':
+            winner = play_game(players)
+            # Print winner
+            if winner == -1:
+               print_message("Cat's Game! No winner.")
+            else:
+               print_message(f"{get_printable_name(players[winner])} as {symbols[winner]}, is the Winner!")
+            print_message("Press <R> for a rematch", 2)
+            print_message("Press <Q> to return to main menu", 3)
+            pause = getch(['q', 'r'])
 
       elif selection == '2':
          if len(player_files) < 1:
@@ -377,7 +414,8 @@ def main(stdscr):
          sub_selection = getch(['1', '2'])
          
          if sub_selection == '1':
-
+            pause = 'r'
+            
             # Play two custom AI's against each other
             first_player = get_ai_selection(player_files, 'X')
             print_message(f"X: {get_printable_name(first_player)}")
@@ -385,9 +423,15 @@ def main(stdscr):
 
             players.append(get_ai_selection(player_files, 'O'))
                
-            play_game(players)
-            print_message("Press <C> to continue...", 2)
-            pause = getch(['c'])
+            while pause == 'r':
+               winner = play_game(players)
+               if winner == -1:
+                  print_message("Cat's Game! No winner.")
+               else:
+                  print_message(f"{get_printable_name(players[winner])} as {symbols[winner]}, is the Winner!")
+               print_message("Press <R> for a rematch", 2)
+               print_message("Press <Q> to return to main menu", 3)
+               pause = getch(['q', 'r'])
          elif sub_selection == '2':
             if len(player_files) < 1:
                print_message("There are no AI's in the 'players' folder to play against")
@@ -401,25 +445,16 @@ def main(stdscr):
             players.append(get_ai_selection(player_files, 'O'))
                
             play_many_games(num_games, players, wins)
-            
-            # print(f"Games: {num_games}")
-            # print(f"{get_printable_name(players[0])} as 'X' Wins: {wins[0]}")
-            # print(f"{get_printable_name(players[1])} as 'O' Wins: {wins[1]}")
-            # print(f"Ties: {wins[2]}")
 
             players2 = players[::-1]
             wins2 = [0, 0, 0]
             
             play_many_games(num_games, players2, wins2)
             
-            # print(f"Games: {num_games}")
-            # print(f"{get_printable_name(players[0])} as 'X' Wins: {wins[0]}")
-            # print(f"{get_printable_name(players[1])} as 'O' Wins: {wins[1]}")
-            # print(f"Ties: {wins[2]}")
             draw_many_game_results()
             print_many_games_scores(players, wins, wins2)
-            print_message("Press <C> to continue...")
-            pause = getch(['c'])
+            print_message("Press <Q> to return to the main menu", 4)
+            pause = getch(['q'])
 
       elif selection == 'q':
          break

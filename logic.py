@@ -18,10 +18,14 @@ def get_winner(board):
    return ''
 
 def load_player_files():
+   ignore_files = [
+      "__pycache__",
+      "__init__.py"
+   ]
    players_list = os.listdir('./players')
    output_list = []
    for player in players_list:
-      if player != 'util.py':
+      if player not in ignore_files:
          # Strip the '.py' from the end of the file name
          output_list.append(player.split('.')[0])
    return output_list

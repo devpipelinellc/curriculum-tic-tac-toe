@@ -18,7 +18,7 @@ def get_move(board, letter):
    # STEP 4
    return get_highest_index(move_weighted_scores)
 
-def get_score(board, letter, move):
+def get_score(board, letter, move, second_move = False):
    temp_board = board[::]
 
    temp_board[move] = letter
@@ -30,6 +30,15 @@ def get_score(board, letter, move):
    if winner == letter:
       return 50
    
+   if second_move: return 1
+   
+   opp_letter = 'X' if letter == 'O' else 'O'
+
+   # Is this a blocking move?
+   if get_score(board, opp_letter, move, True) == 50:
+      # The opponent would win by moving here
+      return 25
+
    return -1
 
 def get_highest_index(list_of_numbers):
@@ -50,7 +59,7 @@ def get_available_moves(board):
    
    return output
 
-print(get_move(['X','O','X','X','O','O','O','',''], 'X'))
+# print(get_move(['O','X','O','','X','','O','',''], 'X'))
 
 #  3 | 1 | 3
 # ---+---+---

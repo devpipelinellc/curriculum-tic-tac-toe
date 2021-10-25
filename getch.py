@@ -7,5 +7,5 @@ def getch(valid_options = ['']):
       if key_press: key_press = key_press.lower()
       if key_press in valid_options:
          break
-   print(key_press)
+   
    return key_press
