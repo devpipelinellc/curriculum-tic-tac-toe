@@ -113,7 +113,9 @@ def draw_letter_select_menu():
 def draw_num_games_menu():
    options = [
       "(1) 1 Game",
-      "(2) 10,000 Games"
+      "(2) 10,000 Games",
+      "(3) Play Until 'X' Wins (max 10k)",
+      "(4) Play Until 'O' Wins (max 10k)"
    ]
    draw_menu(options)
 
@@ -292,7 +294,7 @@ def play_game(players, print_board_during_play=True):
                move_index = int(my_move)
 
       else:
-         if print_board_during_play:
+         if print_board_during_play and ai_speed > 0:
             sleep(ai_speed)
          # If player is AI, get the move from the AI
          move_index = player_modules[turn].get_move(game_state['board'], symbols[turn])
@@ -411,7 +413,7 @@ def main(stdscr):
             continue
          
          draw_num_games_menu()
-         sub_selection = getch(['1', '2'])
+         sub_selection = getch(['1', '2', '3', '4'])
          
          if sub_selection == '1':
             pause = 'r'
@@ -455,6 +457,37 @@ def main(stdscr):
             print_many_games_scores(players, wins, wins2)
             print_message("Press <Q> to return to the main menu", 4)
             pause = getch(['q'])
+         elif sub_selection == '3' or sub_selection == '4':
+            ai_speed = 0
+            if len(player_files) < 1:
+               print_message("There are no AI's in the 'players' folder to play against")
+               continue
+            num_games = 10000
+            
+            # Play two custom AI's against each other
+            first_player = get_ai_selection(player_files, 'X')
+            print_message(f"X: {get_printable_name(first_player)}")
+            players.append(first_player)
+
+            players.append(get_ai_selection(player_files, 'O'))
+
+            play_until_letter_wins = 'X'
+            if sub_selection == '4':
+               play_until_letter_wins = 'O'
+            
+            while num_games > 0:
+               winner = play_game(players)
+               if winner >= 0 and symbols[winner] == play_until_letter_wins:
+                  print_message(f"{get_printable_name(players[winner])} as {symbols[winner]}, is the Winner!")
+                  break
+               num_games -= 1
+               
+            if num_games == 0:
+               print_message(f"{play_until_letter_wins} did not win any games!", 1)
+            
+            print_message("Press <Q> to return to the main menu", 4)
+            pause = getch(['q'])
+            ai_speed = .3
 
       elif selection == 'q':
          break

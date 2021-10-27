@@ -1,6 +1,6 @@
 /screens
 /players/alt_tab.py
-/players/the_tie_fighter
+/players/the_tie_fighter.py
 __pycache__
 /unused_players
 /.vscode

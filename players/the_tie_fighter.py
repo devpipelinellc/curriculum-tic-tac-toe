@@ -5,19 +5,36 @@ def get_move(board, letter):
    available_moves = get_available_moves(board)
    turn_number = 10-len(available_moves)
    weights = [1] * 9
+   corners = [0,2,6,8]
+   sides = [1,3,5,7]
    opposite_indexes = [8, 7, 6, 5, -1, 3, 2, 1, 0] 
 
-   if turn_number == 1:
-      return 0
+   if turn_number == 1: return 0
    elif turn_number == 2:
+      if find_move(board, sides, opponent_letter) >= 0:
+         return 4
+      
       weights = [5, 0, 5, 0, 10, 0, 5, 0, 5]
       for m in list(range(1,8))[::2]: # [1, 3, 5, 7]
          if board[m] != '': 
             weights = [10, 0, 10, 0, 0, 0, 10, 0, 10]
-   elif turn_number == 3:
+   elif turn_number == 3: 
+      if find_move(board, [8], opponent_letter) >= 0:
+         return 4
       weights = [10, 0, 0, 0, 0, 0, 0, 0, 10]
    elif turn_number == 4:
       weights = [0, 10, 0, 10, 0, 10, 0, 10, 0]
+      # If the opponent has moved both sides, select a corner next to one of the sides
+      side_play = find_move(board, sides, opponent_letter)
+      if side_play > 0 and find_move(board, corners, opponent_letter) < 0:
+         total_weights = [
+            [10,0,10,0,0,0,0,0,0],
+            [10,0,0,0,0,0,10,0,0],
+            [0,0,10,0,0,0,0,0,10],
+            [0,0,0,0,0,0,10,0,10],
+         ]
+         weights = total_weights[(side_play - 1) // 2]
+         
       # Not all sides are created equal in this case
       blocks = [[1,7], [3,5]]
       for m in list(range(1,8))[::2]:
@@ -32,6 +49,20 @@ def get_move(board, letter):
             weights = [10, 0, 10, 0, 0, 0, 10, 0, 10]
             break
       
+      # Check the loss condition from a single corner and a side played by the opponent
+      opp_corner_move = find_move(board, corners, opponent_letter)
+      opp_side_move = find_move(board, sides, opponent_letter)
+      if opp_corner_move >= 0 and opp_side_move >= 0:
+         # Block if there is a need to block
+         for move_index in available_moves:
+            temp_board = board[::]
+            temp_score = get_score(temp_board, opponent_letter, move_index, True)
+            if temp_score >= 100:
+               return move_index
+         # Favor the corner opposite the corner the opponent moved into
+         if opposite_indexes[opp_corner_move] in available_moves:
+            return opposite_indexes[opp_corner_move]
+
    # Look for wins or blocks
    for temp_letter in [letter, opponent_letter]:
       for move_index in available_moves:
@@ -53,6 +84,12 @@ def get_move(board, letter):
    if move is None or move not in available_moves:
       return random.choice(available_moves)
    return move
+
+def find_move(board, indexes, opponent_letter):
+   for m in indexes:
+      if board[m] == opponent_letter:
+         return m
+   return -1
 
 def get_score(board, letter, move, opponent = False):
    temp_board = board[::]

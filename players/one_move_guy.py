@@ -50,7 +50,7 @@ def get_available_moves(board):
    
    return output
 
-print(get_move(['X','O','X','X','O','O','O','',''], 'X'))
+# print(get_move(['X','O','X','X','O','O','O','',''], 'X'))
 
 #  3 | 1 | 3
 # ---+---+---
