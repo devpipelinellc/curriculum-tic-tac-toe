@@ -27,12 +27,7 @@ def get_move(board, letter):
       # If the opponent has moved both sides, select a corner next to one of the sides
       side_play = find_move(board, sides, opponent_letter)
       if side_play > 0 and find_move(board, corners, opponent_letter) < 0:
-         total_weights = [
-            [10,0,10,0,0,0,0,0,0],
-            [10,0,0,0,0,0,10,0,0],
-            [0,0,10,0,0,0,0,0,10],
-            [0,0,0,0,0,0,10,0,10],
-         ]
+         total_weights = [[10,0,10,0,0,0,0,0,0],[10,0,0,0,0,0,10,0,0],[0,0,10,0,0,0,0,0,10],[0,0,0,0,0,0,10,0,10],]
          weights = total_weights[(side_play - 1) // 2]
          
       # Not all sides are created equal in this case
@@ -97,11 +92,8 @@ def get_score(board, letter, move, opponent = False):
    # Place the hypothetical piece into the temporary board to see how it works :)
    temp_board[move] = letter
    winner = get_winner(temp_board)
-   if winner == letter:
-      return 100
-   
-   if opponent == True:
-      return 1
+   if winner == letter: return 100
+   if opponent == True: return 1
 
    # Since this isn't a winner, let's see if it is a potential loser
    opp_letter = 'X' if letter == 'O' else 'O'
@@ -126,16 +118,7 @@ def get_highest_index(list_of_numbers):
    return random.choice(max_indexes)
 
 def get_winner(board):
-   checks = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6]
-   ]
+   checks = [[0, 1, 2],[3, 4, 5],[6, 7, 8],[0, 3, 6],[1, 4, 7],[2, 5, 8],[0, 4, 8],[2, 4, 6]]
    for indexes in checks:
       if board[indexes[0]] == board[indexes[1]] == board[indexes[2]] != '':
          return board[indexes[0]]
