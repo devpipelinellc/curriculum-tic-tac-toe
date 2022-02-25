@@ -1,6 +1,12 @@
 /screens
 /players/alt_tab.py
 /players/the_tie_fighter.py
+"/players/alt_tab (1).py"
+/players/the_beast.py
+/players/the_real_steve.py
+/players/two_move_guy.py
+/players/heuristic_funk.py
+
 __pycache__
 /unused_players
 /.vscode
