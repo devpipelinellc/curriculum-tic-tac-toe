@@ -1,19 +1,25 @@
 from logic import *
 
 def get_move(board, letter):
+   # ['X','','','','','','','',''] , 'O'
+   # 0 - 8
    # STEP 1
    weights = [5, 1, 5, 1, 4, 1, 5, 1, 5]
    available_moves = get_available_moves(board)
    
    # STEP 2
-   move_scores = [0] * 9
+   move_scores = [0] * 9  # [0, 1, 1, 1, 1, 1, 1, 1, 1]
+   # available_moves = [1, 2, 3, 4, 5, 6, 7, 8]
    for move_index in available_moves:
       move_scores[move_index] = get_score(board, letter, move_index)
    
    # STEP 3
    move_weighted_scores = []
    for i in range(9):
-      move_weighted_scores.append(weights[i] * move_scores[i])
+      move_weighted_scores.append(weights[i] * move_scores[i]) #[0, 1, 1, 1, 1, 1, 1, 1, 1]
+                                                               #[5, 1, 5, 1, 4, 1, 5, 1, 5]
+                                                               #[0, 1, 5, 1, 4, 1, 5, 1, 5]
+
    
    # STEP 4
    return get_highest_index(move_weighted_scores)
@@ -43,12 +49,13 @@ def get_highest_index(list_of_numbers):
    return max_index
 
 def get_available_moves(board):
+   # ['X','','','','','','','','']
    output = []
-   for i in range(len(board)):
+   for i in range(9):   # 0-8
       if board[i] == '':
          output.append(i)
    
-   return output
+   return output  # [1, 2, 3, 4, 5, 6, 7, 8]
 
 # print(get_move(['X','O','X','X','O','O','O','',''], 'X'))
 

@@ -5,7 +5,7 @@ def get_move(board, letter):
    
    return random.choice(available_moves)
 
-def get_available_moves(self, board):
+def get_available_moves(board):
    output = []
    for i in range(len(board)):
       if board[i] == '':
